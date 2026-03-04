@@ -74,3 +74,15 @@ class GreetingController {
         );
     }
 }
+
+@RefreshScope
+class AppConfigController {
+    
+    @Value("${app.bus-test:not-set}")
+    private String busTest;
+    
+    @GetMapping("/api/bus-test")
+    public String busTest() {
+        return busTest;
+    }
+}

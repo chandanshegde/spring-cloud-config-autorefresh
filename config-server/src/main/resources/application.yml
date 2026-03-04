@@ -1,24 +1,37 @@
 server:
   port: 8888
+  tomcat:
+    accesslog:
+      enabled: true
+      pattern: "%h %l %u %t \"%r\" %s %b"
 
 spring:
   application:
     name: config-server
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:native}
   cloud:
     config:
       server:
-        # Git-based configuration (recommended for production)
-        # The URI should point to this repository when deployed to GitHub
-        git:
-          uri: ${CONFIG_GIT_URI:file://./config-repo}
-          default-label: main
-          search-paths: config-repo
-          timeout: 10
-          refresh-rate: 30
-        # Native filesystem-based configuration (for local development without Git)
-        # Uncomment below and comment out git above to use local files instead of Git
+        # Native filesystem-based configuration (for local Docker development)
+        # Works well with Docker volumes mounted from host
+        # NOTE: Use only 'file:' path - classpath takes precedence which causes confusion
+        # In production, use Git instead of native
         # native:
-        #   search-locations: ${CONFIG_REPO_PATH:file:./config-repo}
+        #  search-locations: file:/config-repo
+        # Git-based configuration (for production with real Git repo)
+        # Uncomment above native and comment out git below to use Git
+         git:
+           # use SSH for production env, or at least a username/pwd based access with private repo
+           uri: ${CONFIG_GIT_URI:https://github.com/chandanshegde/spring-cloud-config-autorefresh.git}
+           # username: ${GIT_USERNAME} or at least a username/pwd based access with private repo
+           # password: ${GIT_PWD}
+           default-label: main
+           search-paths: config-repo
+           timeout: 10
+           refresh-rate: 30
+           clone-on-start: true # spring clones repo to /tmp and this causes fail-fast on startup if repo doesn't exist or is not reachable
+
     consul:
       host: ${CONSUL_HOST:localhost}
       port: ${CONSUL_PORT:8500}
@@ -53,5 +66,8 @@ management:
 logging:
   level:
     root: INFO
-    org.springframework.cloud: DEBUG
+    org.springframework.cloud: INFO
+    org.springframework.cloud.config: DEBUG
+    org.springframework.boot.context.config: DEBUG
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
     org.springframework.boot: INFO

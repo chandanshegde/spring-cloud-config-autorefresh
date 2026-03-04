@@ -10,6 +10,7 @@ build/
 *.iws
 .vscode/
 *.swp
+bin/
 
 # OS
 .DS_Store
@@ -27,6 +28,3 @@ logs/
 *.pid
 *.seed
 *.pid.lock
-
-# Config repo (in local setup)
-config-repo/

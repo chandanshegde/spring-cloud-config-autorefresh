@@ -5,10 +5,10 @@ spring:
   application:
     name: config-client-2
   config:
-    import: optional:configserver:http://localhost:8888
+    import: optional:configserver:${CONFIG_SERVER_URL:http://config-server:8888}
   cloud:
     consul:
-      host: ${CONSUL_HOST:localhost}
+      host: ${CONSUL_HOST:consul}
       port: ${CONSUL_PORT:8500}
       discovery:
         service-name: ${spring.application.name}
@@ -20,7 +20,7 @@ spring:
       ack:
         mode: none
   rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
+    host: ${RABBITMQ_HOST:rabbitmq}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}

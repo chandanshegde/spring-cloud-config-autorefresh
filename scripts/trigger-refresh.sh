@@ -12,11 +12,10 @@ echo "Config Server URL: $CONFIG_SERVER_URL"
 echo ""
 
 # Trigger the /monitor endpoint (simulates GitHub webhook)
+# Note: /monitor accepts GET requests from GitHub webhooks
 echo "Calling /actuator/monitor..."
-RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$CONFIG_SERVER_URL/actuator/monitor" \
-  -H "Content-Type: application/json" \
-  -H "X-GitHub-Event: push" \
-  -d '{"ref":"refs/heads/main","after":"abcdef123456"}')
+RESPONSE=$(curl -s -w "\n%{http_code}" -X GET "$CONFIG_SERVER_URL/actuator/monitor" \
+  -H "X-GitHub-Event: push")
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')

@@ -1,0 +1,26 @@
+# Common configuration for all applications
+# This file applies to all services unless overridden
+
+message:
+  prefix: "Hello from Config Server!"
+  suffix: " - Config Version: v2"
+
+app:
+  version: "1.0.0"
+  environment: "demo"
+  bus-test: "bus-value-v2"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh,busrefresh
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud: DEBUG
+    org.springframework.boot: INFO

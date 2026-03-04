@@ -1,0 +1,16 @@
+# Configuration for config-client-2
+# This will be fetched by the second client application
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: config-client-2
+
+greeting:
+  name: "Client Two"
+  message: "Welcome from client-2"
+
+custom:
+  property: "client2-value-v1"

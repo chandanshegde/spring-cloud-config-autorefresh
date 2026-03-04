@@ -1,0 +1,16 @@
+# Configuration for config-client-1
+# This will be fetched by the client application
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: config-client-1
+
+greeting:
+  name: "Client One"
+  message: "Welcome from client-1"
+
+custom:
+  property: "client1-value-v1"

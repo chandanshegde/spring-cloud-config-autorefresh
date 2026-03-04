@@ -34,17 +34,14 @@ services:
     ports:
       - "8888:8888"
     environment:
+      - SPRING_PROFILES_ACTIVE=git
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
       - RABBITMQ_USERNAME=guest
       - RABBITMQ_PASSWORD=guest
-      # For local Docker: use file:// with absolute path to volume
-      # For GitHub: set to your GitHub repo URL (e.g., https://github.com/your-org/your-repo)
-      - CONFIG_GIT_URI=file:///config-repo
-    volumes:
-      - ./config-repo:/config-repo:ro
+      - CONFIG_GIT_URI=https://github.com/chandanshegde/spring-cloud-config-autorefresh
     depends_on:
       - consul
       - rabbitmq
