@@ -56,12 +56,12 @@ management:
   endpoint:
     health:
       show-details: always
-    monitor:
-      enabled: true
-    busenv:
-      enabled: true
     refresh:
-      enabled: true
+      access: unrestricted
+    busenv:
+      access: unrestricted
+    monitor:
+      access: unrestricted
 
 logging:
   level:

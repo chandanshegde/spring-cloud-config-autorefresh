@@ -10,7 +10,8 @@ spring:
 
 greeting:
   name: "Client One"
-  message: "Welcome from client-1"
+  #message: "Welcome from client-1"
+  message: "Updated message from Git!"
 
 custom:
   property: "client1-value-v1"
