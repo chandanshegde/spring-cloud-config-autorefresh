@@ -1,0 +1,41 @@
+name: Trigger Config Refresh
+
+on:
+  push:
+    branches: [main]
+    paths: ['config-repo/**']
+  workflow_dispatch:
+    inputs:
+      config_server_url:
+        description: 'Config Server URL'
+        required: false
+        default: 'http://localhost:8888'
+        type: string
+
+jobs:
+  notify-config-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Trigger Config Server Monitor
+        env:
+          CONFIG_SERVER_URL: ${{ github.event.inputs.config_server_url || secrets.CONFIG_SERVER_URL || 'http://localhost:8888' }}
+        run: |
+          echo "Triggering config refresh at: $CONFIG_SERVER_URL"
+          curl -X POST "$CONFIG_SERVER_URL/actuator/monitor" \
+            -H "Content-Type: application/json" \
+            -H "X-Gitlab-Event: Push Hook" \
+            --fail \
+            --silent \
+            --show-error
+      
+      - name: Wait for propagation
+        run: sleep 5
+
+      - name: Verify client health
+        run: |
+          echo "Checking client apps..."
+          curl -s http://localhost:8080/actuator/health || echo "Client 1 not available"
+          curl -s http://localhost:8081/actuator/health || echo "Client 2 not available"

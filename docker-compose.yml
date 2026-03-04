@@ -1,0 +1,107 @@
+services:
+  consul:
+    image: consul:1.9
+    container_name: consul
+    ports:
+      - "8500:8500"
+    command: agent -server -ui -bootstrap-expect=1 -client=0.0.0.0
+    networks:
+      - spring-cloud
+    profiles:
+      - infrastructure
+      - full
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - spring-cloud
+    profiles:
+      - infrastructure
+      - full
+
+  config-server:
+    build:
+      context: .
+      dockerfile: config-server/Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+      # For local Docker: use file:// with absolute path to volume
+      # For GitHub: set to your GitHub repo URL (e.g., https://github.com/your-org/your-repo)
+      - CONFIG_GIT_URI=file:///config-repo
+    volumes:
+      - ./config-repo:/config-repo:ro
+    depends_on:
+      - consul
+      - rabbitmq
+    networks:
+      - spring-cloud
+    profiles:
+      - server
+      - full
+
+  config-client-1:
+    build:
+      context: .
+      dockerfile: config-client-1/Dockerfile
+    container_name: config-client-1
+    ports:
+      - "8080:8080"
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+    depends_on:
+      - config-server
+      - consul
+      - rabbitmq
+    networks:
+      - spring-cloud
+    profiles:
+      - clients
+      - full
+
+  config-client-2:
+    build:
+      context: .
+      dockerfile: config-client-2/Dockerfile
+    container_name: config-client-2
+    ports:
+      - "8081:8081"
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+    depends_on:
+      - config-server
+      - consul
+      - rabbitmq
+    networks:
+      - spring-cloud
+    profiles:
+      - clients
+      - full
+
+networks:
+  spring-cloud:
+    driver: bridge

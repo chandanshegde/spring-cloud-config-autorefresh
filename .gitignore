@@ -1,0 +1,32 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# Config repo (in local setup)
+config-repo/

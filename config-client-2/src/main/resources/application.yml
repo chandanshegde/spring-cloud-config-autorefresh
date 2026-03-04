@@ -1,0 +1,35 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: config-client-2
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: false
+    bus:
+      id: ${spring.application.name}
+      enabled: true
+      destination: my-config-bus
+      ack:
+        mode: none
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,refresh,info,busenv
+  endpoint:
+    health:
+      show-details: always

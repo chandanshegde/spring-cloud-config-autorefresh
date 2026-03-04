@@ -1,0 +1,78 @@
+flowchart TB
+    subgraph GitRepo["Git Repository (GitHub/GitLab)"]
+        git-files["config-repo/<br/>config-client-1.yml<br/>config-client-2.yml<br/>application.yml"]
+    end
+    
+    subgraph Trigger["Trigger Mechanisms"]
+        github-action["GitHub Action<br/>config-refresh.yml"]
+        local-script["Local Script<br/>trigger-refresh.sh"]
+    end
+    
+    subgraph Rabbit["RabbitMQ (5672/15672)"]
+        rabbitmq-exchange["Exchange: my-config-bus<br/>(Fanout - One-Way)"]
+    end
+    
+    subgraph Consul["Consul (8500)"]
+        service-registry["Service<br/>Registry"]
+    end
+    
+    subgraph ConfigServer["Config Server (8888)"]
+        monitor["/actuator/monitor<br/>(Webhook Endpoint)"]
+        git-backend["Git Backend<br/>(Reads from Git Repo)"]
+        bus-publisher["Bus Publisher<br/>(Publishes to RabbitMQ)"]
+    end
+    
+    subgraph Client1["Client 1 (8080)"]
+        c1-http["spring.config.import<br/>HTTP GET<br/>http://config-server:8888/..."]
+        c1-refresh["@RefreshScope<br/>GreetingController"]
+        c1-bus["BusAutoConfiguration<br/>(Auto-subscribes)"]
+        c1-consul["Consul Registration"]
+    end
+    
+    subgraph Client2["Client 2 (8081)"]
+        c2-http["spring.config.import<br/>HTTP GET<br/>http://config-server:8888/..."]
+        c2-refresh["@RefreshScope<br/>GreetingController"]
+        c2-bus["BusAutoConfiguration<br/>(Auto-subscribes)"]
+        c2-consul["Consul Registration"]
+    end
+    
+    %% Git Repo connection
+    git-files == "1. Config Server reads from Git" ==> git-backend
+    
+    %% Trigger to /monitor
+    github-action == "POST /monitor" ==> monitor
+    local-script == "POST /monitor" ==> monitor
+    
+    %% /monitor triggers: fetch from Git + publish to bus
+    monitor == "2. Fetch latest config" ==> git-backend
+    monitor == "3. Publish RefreshEvent to bus" ==> bus-publisher
+    
+    %% Bus publisher sends to RabbitMQ
+    bus-publisher == "4. Broadcast to RabbitMQ" ==> rabbitmq-exchange
+    
+    %% RabbitMQ sends to all clients
+    rabbitmq-exchange == "5. All clients receive event" ==> c1-bus
+    rabbitmq-exchange == "5. All clients receive event" ==> c2-bus
+    
+    %% Bus listeners call /refresh
+    c1-bus == "6. Auto-call /refresh" ==> c1-refresh
+    c2-bus == "6. Auto-call /refresh" ==> c2-refresh
+    
+    %% Client startup: fetch config from Config Server
+    c1-http -.->|7. Startup: Fetch config| ConfigServer
+    c2-http -.->|7. Startup: Fetch config| ConfigServer
+    
+    %% Consul Registration
+    git-backend == "Register" ==> service-registry
+    c1-consul == "Register" ==> service-registry
+    c2-consul == "Register" ==> service-registry
+    
+    style GitRepo fill:#f9f,color:#000
+    style Rabbit fill:#ff9,color:#000
+    style Consul fill:#bbf,color:#000
+    style ConfigServer fill:#bfb,color:#000
+    style Client1 fill:#fbb,color:#000
+    style Client2 fill:#fbb,color:#000
+    style monitor fill:#ff0,color:#000
+    style bus-publisher fill:#ff0,color:#000
+    style git-backend fill:#ff0,color:#000
