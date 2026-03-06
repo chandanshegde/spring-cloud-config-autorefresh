@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Import Spring Boot's default logback configuration -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!-- 
+        ASYNC APPENDER - Offloads logging I/O to background thread
+        
+        Benefits:
+        - Reduces request latency (log.debug() returns immediately)
+        - Handles logging bursts without blocking request threads
+        - Production-ready configuration
+        
+        Configuration:
+        - queueSize: 512 - buffer size for log events (increase if logs are dropped)
+        - discardingThreshold: 0 - never discard logs (set to 20% for less critical logs)
+        - neverBlock: false - block if queue is full (prevents log loss)
+        - maxFlushTime: 1000 - wait up to 1s on shutdown to flush remaining logs
+    -->
+    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="CONSOLE" />
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <!-- Include caller data (line numbers) - slight performance cost -->
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- Root logger configuration -->
+    <root level="INFO">
+        <appender-ref ref="ASYNC_CONSOLE" />
+    </root>
+
+    <!-- Application-specific log levels -->
+    <logger name="org.springframework.cloud" level="INFO" />
+    <logger name="org.springframework.cloud.config" level="DEBUG" />
+    <logger name="org.springframework.boot.context.config" level="DEBUG" />
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="DEBUG" />
+    <logger name="org.springframework.boot" level="INFO" />
+    
+    <!-- Reduce noise from Spring Cloud Bus function registry -->
+    <logger name="org.springframework.cloud.function.context.catalog.BeanFactoryAwareFunctionRegistry" level="ERROR" />
+    
+    <!-- Profile-specific configurations -->
+    <springProfile name="dev">
+        <!-- In development, you might want synchronous logging for immediate visibility -->
+        <!-- Uncomment below to use sync logging in dev profile -->
+        <!--
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE" />
+        </root>
+        -->
+    </springProfile>
+
+    <springProfile name="prod">
+        <!-- In production, definitely use async logging -->
+        <root level="INFO">
+            <appender-ref ref="ASYNC_CONSOLE" />
+        </root>
+    </springProfile>
+</configuration>

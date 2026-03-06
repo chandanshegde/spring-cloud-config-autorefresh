@@ -4,6 +4,10 @@ server:
     accesslog:
       enabled: true
       pattern: "%h %l %u %t \"%r\" %s %b"
+      directory: /dev
+      prefix: stdout
+      suffix:
+      file-date-format:
 
 spring:
   application:
@@ -30,7 +34,7 @@ spring:
            search-paths: config-repo
            timeout: 10
            refresh-rate: 30
-           clone-on-start: true # spring clones repo to /tmp and this causes fail-fast on startup if repo doesn't exist or is not reachable
+           #clone-on-start: true # spring clones repo to /tmp and this causes fail-fast on startup if repo doesn't exist or is not reachable
 
     consul:
       host: ${CONSUL_HOST:localhost}
@@ -61,7 +65,7 @@ management:
     busenv:
       access: unrestricted
     monitor:
-      access: unrestricted
+      enabled: true
 
 logging:
   level:
@@ -71,3 +75,4 @@ logging:
     org.springframework.boot.context.config: DEBUG
     org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
     org.springframework.boot: INFO
+    com.example.configserver: DEBUG

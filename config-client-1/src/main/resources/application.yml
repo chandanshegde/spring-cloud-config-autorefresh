@@ -1,5 +1,13 @@
 server:
   port: 8080
+  tomcat:
+    accesslog:
+      enabled: true
+      pattern: "%h %l %u %t \"%r\" %s %b"
+      directory: /dev
+      prefix: stdout
+      suffix:
+      file-date-format:
 
 spring:
   application:

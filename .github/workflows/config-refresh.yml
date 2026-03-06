@@ -24,9 +24,9 @@ jobs:
           CONFIG_SERVER_URL: ${{ github.event.inputs.config_server_url || secrets.CONFIG_SERVER_URL || 'http://localhost:8888' }}
         run: |
           echo "Triggering config refresh at: $CONFIG_SERVER_URL"
-          curl -X POST "$CONFIG_SERVER_URL/actuator/monitor" \
+          curl -X POST "$CONFIG_SERVER_URL/monitor" \
             -H "Content-Type: application/json" \
-            -H "X-Gitlab-Event: Push Hook" \
+            -H "X-GitHub-Event: push" \
             --fail \
             --silent \
             --show-error
