@@ -14,11 +14,20 @@ echo ""
 # Trigger the /monitor endpoint (simulates GitHub webhook)
 # Note: /monitor is a regular endpoint, not under /actuator
 # It accepts POST requests with GitHub webhook payloads
+# The payload must include which files were modified to determine which apps to refresh
 echo "Calling /monitor..."
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$CONFIG_SERVER_URL/monitor" \
   -H "X-GitHub-Event: push" \
   -H "Content-Type: application/json" \
-  -d '{}')
+  -d '{
+    "commits": [{
+      "modified": [
+        "config-repo/application.yml",
+        "config-repo/config-client-1.yml",
+        "config-repo/config-client-2.yml"
+      ]
+    }]
+  }')
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')

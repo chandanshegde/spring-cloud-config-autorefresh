@@ -24,12 +24,36 @@ jobs:
           CONFIG_SERVER_URL: ${{ github.event.inputs.config_server_url || secrets.CONFIG_SERVER_URL || 'http://localhost:8888' }}
         run: |
           echo "Triggering config refresh at: $CONFIG_SERVER_URL"
-          curl -X POST "$CONFIG_SERVER_URL/monitor" \
+          
+          # Extract modified files from the git commit
+          MODIFIED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD | grep "^config-repo/" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          
+          # If no files detected (e.g., manual trigger), refresh all config files
+          if [ -z "$MODIFIED_FILES" ] || [ "$MODIFIED_FILES" == "[]" ]; then
+            MODIFIED_FILES='["config-repo/application.yml","config-repo/config-client-1.yml","config-repo/config-client-2.yml"]'
+          fi
+          
+          echo "Modified files: $MODIFIED_FILES"
+          
+          # Send webhook payload to /monitor endpoint
+          RESPONSE=$(curl -X POST "$CONFIG_SERVER_URL/monitor" \
             -H "Content-Type: application/json" \
             -H "X-GitHub-Event: push" \
-            --fail \
+            -d "{\"commits\":[{\"modified\":$MODIFIED_FILES}]}" \
+            --write-out "\n%{http_code}" \
             --silent \
-            --show-error
+            --show-error)
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          APPS=$(echo "$RESPONSE" | head -n1)
+          
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Applications to refresh: $APPS"
+          
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Failed to trigger config refresh"
+            exit 1
+          fi
       
       - name: Wait for propagation
         run: sleep 5
